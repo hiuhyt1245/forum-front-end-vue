@@ -1,25 +1,26 @@
 <template>
   <div class="container py-5">
-    <!-- 餐廳資訊頁 RestaurantDetail -->
-    <RestaurantDetail :initial-restaurant="restaurant" />
+    <div>
+      <h1>{{ restaurant.name }}</h1>
+      <span class="badge badge-secondary mt-1 mb-3">
+        {{ restaurant.categoryName }}
+      </span>
+    </div>
+
     <hr />
-    <!-- 餐廳評論 RestaurantComments -->
-    <RestaurantComments 
-      :restaurantComments="restaurantComments"
-      @after-delete-comment="afterDeleteComment"
-    />
-    <!-- 新增評論 CreateComment -->
-    <CreateComment :restaurant-id="restaurant.id"
-    @after-create-comment="afterCreateComment" />
+
+    <ul>
+      <li>評論數： {{ restaurant.commentsLength }}</li>
+      <li>瀏覽次數： {{ restaurant.viewCounts }}</li>
+    </ul>
+
+    <button type="button" class="btn btn-link" @click="$router.back()">
+      回上一頁
+    </button>
   </div>
 </template>
 
 <script>
-import RestaurantDetail from "../components/RestaurantDetail.vue";
-import RestaurantComments from "../components/RestaurantComments.vue";
-import CreateComment from "../components/CreateComment";
-
-
 /* eslint-disable */
 const dummyData = {
   restaurant: {
@@ -33,7 +34,7 @@ const dummyData = {
       "https://loremflickr.com/320/240/restaurant,food/?random=51.087527880837634",
     viewCounts: 1,
     createdAt: "2022-05-14T07:06:56.000Z",
-    updatedAt: "2022-05-28T10:07:05.366Z",
+    updatedAt: "2022-05-28T10:07:05.000Z",
     CategoryId: 4,
     Category: {
       id: 4,
@@ -41,12 +42,10 @@ const dummyData = {
       createdAt: "2022-05-14T07:06:56.000Z",
       updatedAt: "2022-05-14T07:06:56.000Z",
     },
-    FavoritedUsers: [],
-    LikedUsers: [],
     Comments: [
       {
-        id: 101,
-        text: "Pariatur totam eum est possimus repudiandae.",
+        id: 1,
+        text: "Iste quidem delectus ea veniam eum quidem.",
         UserId: 3,
         RestaurantId: 1,
         createdAt: "2022-05-14T07:06:56.000Z",
@@ -83,8 +82,8 @@ const dummyData = {
         },
       },
       {
-        id: 1,
-        text: "Iste quidem delectus ea veniam eum quidem.",
+        id: 101,
+        text: "Pariatur totam eum est possimus repudiandae.",
         UserId: 3,
         RestaurantId: 1,
         createdAt: "2022-05-14T07:06:56.000Z",
@@ -103,97 +102,39 @@ const dummyData = {
       },
     ],
   },
-  isFavorited: false,
-  isLiked: false,
 };
-const dummyUser = {
-  currentUser: {
-    id: 1,
-    name: '管理者',
-    email: 'root@example.com',
-    image: 'https://i.pravatar.cc/300',
-    isAdmin: true
-  },
-  isAuthenticated: true
-}
 
 export default {
-  name: "Restaurant",
-  components: {
-    RestaurantDetail,
-    RestaurantComments,
-    CreateComment,
-  },
+  name: "RestaurantDashbord",
   data() {
     return {
       restaurant: {
         id: -1,
         name: "",
         categoryName: "",
-        image: "",
-        openingHours: "",
-        tel: "",
-        address: "",
-        description: "",
-        isFavorited: false,
-        isLiked: false,
+        commentsLength: 0,
+        viewCounts: 0,
       },
-      currentUser: dummyUser.currentUser,
-      restaurantComments: [],
+      isLoading: true,
     };
   },
   created() {
-    const { id } = this.$route.params;
-    this.fetchRestaurant(id);
+    const { id: restaurantId } = this.$route.params;
+    this.fetchRestaurant(restaurantId);
   },
   methods: {
     fetchRestaurant(restaurantId) {
-      const { restaurant, isFavorited, isLiked } = dummyData;
-      const {
-        id,
-        name,
-        Category,
-        image,
-        opening_hours,
-        tel,
-        address,
-        description,
-        Comments,
-      } = restaurant;
-
+      const { id, name, Category, Comments, viewCounts } = dammyData.restaurant;
       this.restaurant = {
+        ...this.restaurant,
         id,
         name,
         categoryName: Category ? Category.name : "未分類",
-        image,
-        openingHours: opening_hours,
-        tel,
-        address,
-        description,
-        isFavorited,
-        isLiked,
+        commentsLength: Comments.length,
+        viewCounts,
       };
-      this.restaurantComments = Comments;
+      this.isLoading = false;
     },
-    afterDeleteComment(commentId) {
-      // 以 filter 保留未被選擇的 comment.id
-      this.restaurantComments = this.restaurantComments.filter(
-        (comment) => comment.id !== commentId
-      );
-    },
-    afterCreateComment (payload) {
-      const { commentId, restaurantId, text } = payload
-      this.restaurantComments.push({
-        id: commentId,
-        RestaurantId: restaurantId,
-        User: {
-          id: this.currentUser.id,
-          name: this.currentUser.name
-        },
-        text,
-        createdAt: new Date()
-      })
-    }
   },
 };
 </script>

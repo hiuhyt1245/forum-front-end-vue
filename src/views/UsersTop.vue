@@ -4,11 +4,7 @@
     <h1 class="mt-5">美食達人</h1>
     <hr />
     <div class="row text-center">
-      <div
-       v-for="user in users"
-       :key="user.id"
-       class="col-3"
-      >
+      <div v-for="user in users" :key="user.id" class="col-3">
         <router-link :to="{ name: 'user', params: { id: user.id } }">
           <img
             src="http://via.placeholder.com/300x300?text=No+Image"
@@ -17,19 +13,21 @@
           />
         </router-link>
         <h2>{{ user.name }}</h2>
-        <span class="badge badge-secondary">追蹤人數：{{ user.FollowerCount }}</span>
+        <span class="badge badge-secondary"
+          >追蹤人數：{{ user.FollowerCount }}</span
+        >
         <p class="mt-3">
-          <button 
+          <button
             v-if="user.isFollowed"
-            type="button" 
+            type="button"
             class="btn btn-danger"
             @click.stop.prevent="deleteFollowing(user.id)"
           >
             取消追蹤
           </button>
-          <button 
+          <button
             v-else
-            type="button" 
+            type="button"
             class="btn btn-primary"
             @click.stop.prevent="addFollowing(user.id)"
           >
@@ -93,33 +91,45 @@ export default {
   components: {
     NavTabs,
   },
-  data () {
+  data() {
     return {
-      users: []
-    }
+      users: [],
+    };
   },
-  created () {
-    this.fetchTopUsers ()
+  created() {
+    this.fetchTopUsers();
   },
   methods: {
-    fetchTopUsers () {
-        this.users = dummyData.users
-      }
+    fetchTopUsers() {
+      this.users = dummyData.users;
+    },
+    addFollowing(userId) {
+      console.log("add user id:", userId);
+      // this.users = {
+      //   ...users,
+      //   followerCount: user.followerCount + 1,
+      //   isFollowed: true,
+      // };
+      this.users.forEach(function(user){
+        if(user.id === userId){
+          user.FollowerCount ++
+          user.isFollowed = true
+        }
+      })
+    },
+    deleteFollowing(userId) {
+      // this.users = {
+      //   ...users,
+      //   followerCount: user.followerCount - 1,
+      //   isFollowed: false,
+      // };
+      this.users.forEach(function(user){
+        if(user.id === userId){
+          user.FollowerCount --
+          user.isFollowed = false
+        }
+      })
+    },
   },
-  addFollowing (userId) {
-      this.users = {
-        ...users,
-        followerCount: user.followerCount + 1, 
-        isFollowed: true
-      }
-  },
-  deleteFollowing (userId) {
-      this.users = {
-        ...users, 
-        followerCount: user.followerCount - 1,
-        isFollowed: false
-      }
-  },
-
 };
 </script>
