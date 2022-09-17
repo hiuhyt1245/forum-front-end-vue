@@ -1,111 +1,38 @@
 <template>
   <div class="container py-5">
-    <div>
-      <h1>{{ restaurant.name }}</h1>
-      <span class="badge badge-secondary mt-1 mb-3">
-        {{ restaurant.categoryName }}
-      </span>
-    </div>
+    <Spinner v-if="isLoading" />
+    <template v-else>
+      <div>
+        <h1>{{ restaurant.name }}</h1>
+        <span class="badge badge-secondary mt-1 mb-3">
+          {{ restaurant.categoryName }}
+        </span>
+      </div>
 
-    <hr />
+      <hr />
 
-    <ul>
-      <li>評論數： {{ restaurant.commentsLength }}</li>
-      <li>瀏覽次數： {{ restaurant.viewCounts }}</li>
-    </ul>
+      <ul>
+        <li>評論數： {{ restaurant.commentsLength }}</li>
+        <li>瀏覽次數： {{ restaurant.viewCounts }}</li>
+      </ul>
 
-    <button type="button" class="btn btn-link" @click="$router.back()">
-      回上一頁
-    </button>
+      <button type="button" class="btn btn-link" @click="$router.back()">
+        回上一頁
+      </button>
+    </template>
   </div>
 </template>
 
 <script>
-/* eslint-disable */
-const dummyData = {
-  restaurant: {
-    id: 1,
-    name: "Myron Kuphal PhD",
-    tel: "(261) 868-4875",
-    address: "15909 Kacie Extensions",
-    opening_hours: "08:00",
-    description: "Libero officiis autem.\nIusto nemo repellendus.",
-    image:
-      "https://loremflickr.com/320/240/restaurant,food/?random=51.087527880837634",
-    viewCounts: 1,
-    createdAt: "2022-05-14T07:06:56.000Z",
-    updatedAt: "2022-05-28T10:07:05.000Z",
-    CategoryId: 4,
-    Category: {
-      id: 4,
-      name: "墨西哥料理",
-      createdAt: "2022-05-14T07:06:56.000Z",
-      updatedAt: "2022-05-14T07:06:56.000Z",
-    },
-    Comments: [
-      {
-        id: 1,
-        text: "Iste quidem delectus ea veniam eum quidem.",
-        UserId: 3,
-        RestaurantId: 1,
-        createdAt: "2022-05-14T07:06:56.000Z",
-        updatedAt: "2022-05-14T07:06:56.000Z",
-        User: {
-          id: 3,
-          name: "user2",
-          email: "user2@example.com",
-          password:
-            "$2a$10$2z1YFO8kuhw78N9UvMnECOsNCdh79QCba3YJCcXg2hv3/aOxhM/6u",
-          isAdmin: false,
-          image: null,
-          createdAt: "2022-05-14T07:06:56.000Z",
-          updatedAt: "2022-05-14T07:06:56.000Z",
-        },
-      },
-      {
-        id: 51,
-        text: "Debitis cumque rerum nobis inventore ut dolores.",
-        UserId: 1,
-        RestaurantId: 1,
-        createdAt: "2022-05-14T07:06:56.000Z",
-        updatedAt: "2022-05-14T07:06:56.000Z",
-        User: {
-          id: 1,
-          name: "root",
-          email: "root@example.com",
-          password:
-            "$2a$10$./cb.CUiUuvbIqY0PpRPpuodDigTkU0iPIfSkuG61boEvr2LIBSva",
-          isAdmin: true,
-          image: null,
-          createdAt: "2022-05-14T07:06:56.000Z",
-          updatedAt: "2022-05-14T07:06:56.000Z",
-        },
-      },
-      {
-        id: 101,
-        text: "Pariatur totam eum est possimus repudiandae.",
-        UserId: 3,
-        RestaurantId: 1,
-        createdAt: "2022-05-14T07:06:56.000Z",
-        updatedAt: "2022-05-14T07:06:56.000Z",
-        User: {
-          id: 3,
-          name: "user2",
-          email: "user2@example.com",
-          password:
-            "$2a$10$2z1YFO8kuhw78N9UvMnECOsNCdh79QCba3YJCcXg2hv3/aOxhM/6u",
-          isAdmin: false,
-          image: null,
-          createdAt: "2022-05-14T07:06:56.000Z",
-          updatedAt: "2022-05-14T07:06:56.000Z",
-        },
-      },
-    ],
-  },
-};
+import restaurantsAPI from "./../apis/restaurants";
+import Spinner from "./../components/Spinner";
+import { Toast } from "./../utils/helpers";
 
 export default {
   name: "RestaurantDashbord",
+  components: {
+    Spinner,
+  },
   data() {
     return {
       restaurant: {
@@ -122,18 +49,37 @@ export default {
     const { id: restaurantId } = this.$route.params;
     this.fetchRestaurant(restaurantId);
   },
+  beforeRouteUpdate(to, from, next) {
+    const { id: restaurantId } = to.params;
+    this.fetchRestaurant(restaurantId);
+    next();
+  },
   methods: {
-    fetchRestaurant(restaurantId) {
-      const { id, name, Category, Comments, viewCounts } = dammyData.restaurant;
-      this.restaurant = {
-        ...this.restaurant,
-        id,
-        name,
-        categoryName: Category ? Category.name : "未分類",
-        commentsLength: Comments.length,
-        viewCounts,
-      };
-      this.isLoading = false;
+    async fetchRestaurant(restaurantId) {
+      try {
+        this.isLoading = true;
+        const { data } = await restaurantsAPI.getRestaurant({ restaurantId });
+        if (data.status === "error") {
+          throw new Error(data.message);
+        }
+        const { id, name, Category, Comments, viewCounts } = data.restaurant;
+        this.restaurant = {
+          ...this.restaurant,
+          id,
+          name,
+          categoryName: Category ? Category.name : "未分類",
+          commentsLength: Comments.length,
+          viewCounts,
+        };
+        this.isLoading = false;
+      } catch (error) {
+        console.error(error.message);
+        this.isLoading = false;
+        Toast.fire({
+          icon: "error",
+          title: "無法取得餐廳資料，請稍後再試",
+        });
+      }
     },
   },
 };
